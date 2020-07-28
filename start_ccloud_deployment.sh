@@ -170,6 +170,10 @@ source ./delta_configs/env.delta
 git clone https://github.com/confluentinc/cp-all-in-one
 docker-compose -f cp-all-in-one/cp-all-in-one-cloud/docker-compose.yml up -d connect
 
+# Launch the ksqlDB cli container and keep it running in the background
+docker run -d --name ksqldb-cli confluentinc/ksqldb-cli tail -f /dev/null
+docker cp ksqlqueries.sql ksqldb-cli:/ksqlqueries.sql
+
 # Wait for Kafka connect to be ready
 echo "Waiting for Kafka Connect to start listening on localhost"
 while [ $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors) -eq 000 ] ; do 
@@ -303,15 +307,15 @@ sleep 1
 
 # Create a script to launch ksqlDB cli
 cat <<EOF > ccloud_kafka_examples/ksqldb-launch.sh
-ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
+docker exec -it ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
 EOF
 chmod +x ccloud_kafka_examples/ksqldb-launch.sh
 
 
 # Create a script to run the ksqlDB queries
 cat <<EOFSH > ccloud_kafka_examples/ksqldb-run-queries.sh
-ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
-RUN SCRIPT 'ksqlqueries.sql';
+docker exec -i ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
+RUN SCRIPT '/ksqlqueries.sql';
 exit
 EOF
 EOFSH
