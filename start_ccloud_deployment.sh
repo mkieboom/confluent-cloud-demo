@@ -45,10 +45,31 @@ EOF
 source ./ccloud_library.sh
 
 # Clean previous variables
+unset ENVIRONMENT_ID
 unset SERVICE_ACCOUNT_ID
-unset KAFAK_CLUSTER_ID
+unset KAFKA_CLUSTER_ID
 unset SCHEMA_REGISTRY_CLUSTER_ID
 unset KSQLDB_APP_ID
+
+unset QUIET
+unset ENVIRONMENT_NAME
+unset CLUSTER_NAME
+unset CLUSTER_CLOUD
+unset CLUSTER_REGION
+unset SCHEMA_REGISTRY_CLOUD
+unset SCHEMA_REGISTRY_GEO
+unset CLIENT_CONFIG
+
+unset BOOTSTRAP_SERVERS
+
+unset SCHEMA_REGISTRY_ENDPOINT
+unset SCHEMA_REGISTRY_API_KEY
+unset SCHEMA_REGISTRY_API_SECRET
+
+unset KSQLDB_ENDPOINT
+unset KSQLDB_API_KEY
+unset KSQLDB_API_SECRET
+
 
 # Create a Confluent Cloud stack
 export QUIET=false
@@ -65,7 +86,6 @@ export CLIENT_CONFIG=kafka.config
 
 # Deploy the Confluent Cloud stack based on above configuration
 ccloud::create_ccloud_stack
-
 
 
 # Allow ksqlDB to create, write, read all topics and consumer groups
@@ -101,7 +121,7 @@ export CLIENT_CONFIG=${CLIENT_CONFIG}
 # Environment and cluster ID's
 export ENVIRONMENT_ID=${ENVIRONMENT}
 export SERVICE_ACCOUNT_ID=${SERVICE_ACCOUNT_ID}
-export KAFAK_CLUSTER_ID=${CLUSTER}
+export KAFKA_CLUSTER_ID=${CLUSTER}
 export SCHEMA_REGISTRY_CLUSTER_ID=${SCHEMA_REGISTRY}
 export KSQLDB_APP_ID=${KSQLDB}
 
@@ -156,6 +176,14 @@ while [ $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors)
   #echo -e $(date) " Kafka Connect listener HTTP state: " $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors) " (waiting for 200)"
   echo -n "."
   sleep 5 
+done
+
+# Wait for Schema Registry to be ready
+echo -e "\n\nWaiting for Schema Registry to be available before launching the datagen connectors\n"
+while [ $(curl -s -o /dev/null -w %{http_code} ${SCHEMA_REGISTRY_ENDPOINT} -u ${SCHEMA_REGISTRY_API_KEY}:${SCHEMA_REGISTRY_API_SECRET}) -eq 000 ]
+do 
+  echo -n "."
+  sleep 5
 done
 
 # Copy the datagen files into the connect container
