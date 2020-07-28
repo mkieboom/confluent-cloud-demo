@@ -22,6 +22,7 @@ rm -rf ccloud-generate-cp-configs.sh
 rm -rf delta_configs/
 rm -rf ccloud_kafka_examples/
 rm -rf cp-all-in-one/
+rm -rf env.sh
 
 # Clean previous variables
 unset ENVIRONMENT_ID
