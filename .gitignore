@@ -1,2 +1,10 @@
 
 .DS_Store
+.gitattributes
+ccloud_env.sh
+kafka.config
+ccloud-generate-cp-configs.sh
+ccloud_kafka_examples/
+delta_configs/
+cp-all-in-one/
+env.sh

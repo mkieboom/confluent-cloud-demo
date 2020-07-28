@@ -44,8 +44,13 @@ EOF
 # Load the Confluent Cloud library
 source ./ccloud_library.sh
 
-# Create a Confluent Cloud stack
+# Clean previous variables
+unset SERVICE_ACCOUNT_ID
+unset KAFAK_CLUSTER_ID
+unset SCHEMA_REGISTRY_CLUSTER_ID
+unset KSQLDB_APP_ID
 
+# Create a Confluent Cloud stack
 export QUIET=false
 
 export ENVIRONMENT_NAME=mkieboom-cicd-env
@@ -61,6 +66,61 @@ export CLIENT_CONFIG=kafka.config
 # Deploy the Confluent Cloud stack based on above configuration
 ccloud::create_ccloud_stack
 
+
+
+# Allow ksqlDB to create, write, read all topics and consumer groups
+export SERVICE_ACCOUNT_ID_KSQL=$(($SERVICE_ACCOUNT_ID + 1))
+echo "Allow Service Account ID ${SERVICE_ACCOUNT_ID_KSQL} to have full access to the environment"
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation CREATE --topic '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation WRITE --topic '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation READ --topic '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation DESCRIBE --topic '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation DESCRIBE_CONFIGS --topic '*'
+
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation READ --consumer-group '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation WRITE --consumer-group '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation CREATE --consumer-group '*'
+
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation DESCRIBE --transactional-id '*'
+ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID_KSQL --operation WRITE --transactional-id '*'
+
+
+# Create an env file with all cluster settings
+cat <<EOF > env.sh
+# Cluster details
+export ENVIRONMENT_NAME=${ENVIRONMENT_NAME}
+export CLUSTER_NAME=${CLUSTER_NAME}
+export CLUSTER_CLOUD=${CLUSTER_CLOUD}
+export CLUSTER_REGION=${CLUSTER_REGION}
+
+export SCHEMA_REGISTRY_CLOUD=${SCHEMA_REGISTRY_CLOUD}
+export SCHEMA_REGISTRY_GEO=${SCHEMA_REGISTRY_GEO}
+
+export CLIENT_CONFIG=${CLIENT_CONFIG}
+
+# Environment and cluster ID's
+export ENVIRONMENT_ID=${ENVIRONMENT}
+export SERVICE_ACCOUNT_ID=${SERVICE_ACCOUNT_ID}
+export KAFAK_CLUSTER_ID=${CLUSTER}
+export SCHEMA_REGISTRY_CLUSTER_ID=${SCHEMA_REGISTRY}
+export KSQLDB_APP_ID=${KSQLDB}
+
+# Bootstrap server
+export BOOTSTRAP_SERVERS=${BOOTSTRAP_SERVERS}
+
+# Schema Registry details
+export SCHEMA_REGISTRY_ENDPOINT=${SCHEMA_REGISTRY_ENDPOINT}
+export SCHEMA_REGISTRY_API_KEY=`echo $SCHEMA_REGISTRY_CREDS | awk -F: '{print $1}'`
+export SCHEMA_REGISTRY_API_SECRET=`echo $SCHEMA_REGISTRY_CREDS | awk -F: '{print $2}'`
+
+# ksqlDB details
+export KSQLDB_ENDPOINT=${KSQLDB_ENDPOINT}
+export KSQLDB_API_KEY=`echo $KSQLDB_CREDS | awk -F: '{print $1}'`
+export KSQLDB_API_SECRET=`echo $KSQLDB_CREDS | awk -F: '{print $2}'`
+EOF
+chmod +x env.sh
+source ./env.sh
+
 # Create a various kafka avro console consumer commands
 mkdir ccloud_kafka_examples
 cp kafka.config ccloud_kafka_examples/
@@ -70,6 +130,7 @@ create_kafka_avro_console_consumer_frombeginning products ccloud_kafka_examples/
 create_kafka_avro_console_consumer supplies ccloud_kafka_examples/3_kafka-avro-console-consumer-supplies.sh
 create_kafka_avro_console_consumer orders ccloud_kafka_examples/4_kafka-avro-console-consumer-orders.sh
 create_kafka_avro_console_consumer product_supply_and_demand ccloud_kafka_examples/5_kafka-avro-console-consumer-product_supply_and_demand.sh
+create_kafka_avro_console_consumer current_stock ccloud_kafka_examples/6_kafka-avro-console-consumer-current_stock.sh
 
 
 # Create a curl example command to test the ccloud ksqlDB
@@ -117,23 +178,6 @@ ccloud kafka topic create product_supply_and_demand --partitions 1 --if-not-exis
 ccloud kafka topic create current_stock --partitions 1 --if-not-exists
 ccloud kafka topic create total_order_value_per_customer_last_3mins --partitions 1 --if-not-exists
 ccloud kafka topic create product_demand_last_3mins --partitions 1 --if-not-exists
-
-
-# Allow ksqlDB to create, write, read all topics and consumer groups
-export SERVICE_ACCOUNT_ID=$(($SERVICE_ACCOUNT_ID + 1))
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation CREATE --topic '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation WRITE --topic '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation READ --topic '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation DESCRIBE --topic '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation DESCRIBE_CONFIGS --topic '*'
-
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation READ --consumer-group '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation WRITE --consumer-group '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation CREATE --consumer-group '*'
-
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation DESCRIBE --transactional-id '*'
-ccloud kafka acl create --allow --service-account $SERVICE_ACCOUNT_ID --operation WRITE --transactional-id '*'
-
 
 # Deploy the datagen connectors
 curl -X POST http://localhost:8083/connectors \
@@ -228,16 +272,17 @@ curl -X POST http://localhost:8083/connectors \
 sleep 1
 # docker exec -it connect curl -X GET localhost:8083/connectors/datagen_supplies/status | jq .
 
+
 # Create a script to launch ksqlDB cli
 cat <<EOF > ccloud_kafka_examples/ksqldb-launch.sh
-ksql -u `echo $KSQLDB_CREDS | awk -F: '{print $1}'` -p `echo $KSQLDB_CREDS | awk -F: '{print $2}'` ${KSQLDB_ENDPOINT}
+ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
 EOF
 chmod +x ccloud_kafka_examples/ksqldb-launch.sh
 
 
 # Create a script to run the ksqlDB queries
 cat <<EOFSH > ccloud_kafka_examples/ksqldb-run-queries.sh
-ksql -u `echo $KSQLDB_CREDS | awk -F: '{print $1}'` -p `echo $KSQLDB_CREDS | awk -F: '{print $2}'` ${KSQLDB_ENDPOINT} <<EOF
+ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
 RUN SCRIPT 'ksqlqueries.sql';
 exit
 EOF
@@ -246,8 +291,7 @@ chmod +x ccloud_kafka_examples/ksqldb-run-queries.sh
 
 # Create a script to test if ksql is up and running and available
 cat <<EOF > ccloud_kafka_examples/ksqldb-available-test.sh
-export KSQLDB_CREDENTIALS=`echo $KSQLDB_CREDS | awk -F: '{print $1}'`:`echo $KSQLDB_CREDS | awk -F: '{print $2}'`
-while [ $(curl -s -o /dev/null -w %{http_code} ${KSQLDB_ENDPOINT} -u ${KSQLDB_CREDENTIALS}) -eq 000 ]
+while [ $(curl -s -o /dev/null -w %{http_code} ${KSQLDB_ENDPOINT} -u ${KSQLDB_API_KEY}:${KSQLDB_API_SECRET}) -eq 000 ]
 do 
   echo -n "."
   sleep 5
@@ -257,12 +301,12 @@ chmod +x ccloud_kafka_examples/ksqldb-available-test.sh
 
 # Wait for ksqlDB Server to be ready
 echo -e "\n\nWaiting for KSQL to be available before launching CLI\n"
-export KSQLDB_CREDENTIALS=`echo $KSQLDB_CREDS | awk -F: '{print $1}'`:`echo $KSQLDB_CREDS | awk -F: '{print $2}'`
-while [ $(curl -s -o /dev/null -w %{http_code} ${KSQLDB_ENDPOINT} -u ${KSQLDB_CREDENTIALS}) -eq 000 ]
+while [ $(curl -s -o /dev/null -w %{http_code} ${KSQLDB_ENDPOINT} -u ${KSQLDB_API_KEY}:${KSQLDB_API_SECRET}) -eq 000 ]
 do 
   echo -n "."
   sleep 5
 done
+
 
 # ksqlDB is available, run the sql queries file
 bash ccloud_kafka_examples/ksqldb-run-queries.sh

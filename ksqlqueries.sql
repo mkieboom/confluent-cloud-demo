@@ -1,5 +1,5 @@
 SET 'auto.offset.reset' = 'earliest';
-SET 'commit.interval.ms'='2000';
+SET 'commit.interval.ms'='1000';
 
 CREATE TABLE customers (id INT PRIMARY KEY, name VARCHAR)
   WITH (kafka_topic='customers', value_format='avro');
@@ -29,7 +29,7 @@ CREATE STREAM total_order_value WITH (KAFKA_TOPIC='total_order_value', VALUE_FOR
   EMIT CHANGES;
 
 CREATE TABLE total_order_value_per_customer WITH (KAFKA_TOPIC='total_order_value_per_customer', VALUE_FORMAT='avro') AS
-  SELECT customers.name as customername, SUM(total_order_value.totalordervalue)
+  SELECT customers.name as customername, SUM(total_order_value.totalordervalue) AS total_order_value_per_customer
   FROM total_order_value
   LEFT JOIN customers ON total_order_value.customerid = customers.id
   GROUP BY customers.name
