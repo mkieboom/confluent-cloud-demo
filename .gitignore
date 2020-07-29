@@ -9,3 +9,7 @@ delta_configs/
 cp-all-in-one/
 env.sh
 start_ccloud_deployment.log
+scripts/config.env
+~$ksqlDB-design.pptx
+ksqlDB-design.pptx
+scripts/helper.sh

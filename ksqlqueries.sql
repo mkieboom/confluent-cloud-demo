@@ -13,14 +13,20 @@ CREATE STREAM orders (id INT KEY, customerid INT, productid INT, quantity INT)
 CREATE STREAM supplies (id INT KEY, supplierid INT, productid INT, quantity INT)
   WITH (KAFKA_TOPIC='supplies', VALUE_FORMAT='avro');
 
-CREATE STREAM product_supply_and_demand (id INT KEY, productid INT, quantity INT)
+CREATE STREAM shoppingbasket (id INT KEY, customerid INT, productid INT, quantity INT)
+  WITH (KAFKA_TOPIC='shoppingbasket', VALUE_FORMAT='avro');
+
+CREATE STREAM product_supply_and_demand (id INT KEY, productid INT, quantity INT, source VARCHAR)
   WITH (KAFKA_TOPIC='product_supply_and_demand', VALUE_FORMAT='avro');
 
 INSERT INTO product_supply_and_demand
-  SELECT id, productid, quantity FROM supplies;
+  SELECT id, productid, quantity, 'supplies' as source FROM supplies;
 
 INSERT INTO product_supply_and_demand
-  SELECT id, productid, quantity * -1 as quantity FROM orders;
+  SELECT id, productid, quantity * -1 as quantity, 'orders' as source FROM orders;
+
+INSERT INTO product_supply_and_demand
+  SELECT id, productid, quantity * -1 as quantity, 'shoppingbasket' as source FROM shoppingbasket;
 
 CREATE STREAM total_order_value WITH (KAFKA_TOPIC='total_order_value', VALUE_FORMAT='avro') AS
   SELECT orders.id as orderid, orders.customerid as customerid, orders.productid as productid, orders.quantity as quantity, products.price as price, (orders.quantity * products.price) as totalordervalue
@@ -36,7 +42,7 @@ CREATE TABLE total_order_value_per_customer WITH (KAFKA_TOPIC='total_order_value
   EMIT CHANGES;
 
 CREATE TABLE current_stock WITH (KAFKA_TOPIC = 'current_stock', value_format='avro')
-  AS SELECT productid, SUM(quantity) as stock_level
+  AS SELECT productid, SUM(quantity) as stock_level 
   FROM product_supply_and_demand GROUP BY productid;
 
 CREATE TABLE product_demand_last_3mins WITH (PARTITIONS = 1, KAFKA_TOPIC = 'product_demand_last_3mins') AS
@@ -46,3 +52,6 @@ CREATE TABLE product_demand_last_3mins WITH (PARTITIONS = 1, KAFKA_TOPIC = 'prod
          SUM(quantity) "DEMAND_LAST_3MINS"
   FROM orders WINDOW HOPPING (SIZE 3 MINUTES, ADVANCE BY 1 MINUTE)
   GROUP BY productid EMIT CHANGES;
+
+
+
