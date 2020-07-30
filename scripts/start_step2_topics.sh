@@ -9,12 +9,14 @@ function create_kafka_avro_console_consumer {
   FILENAME=$2
 
   cat <<EOF > ${FILENAME}
+source ../env.sh
+
 kafka-avro-console-consumer \
-  --bootstrap-server ${BOOTSTRAP_SERVERS} \
+  --bootstrap-server $BOOTSTRAP_SERVERS \
   --consumer.config $CLIENT_CONFIG \
   --property basic.auth.credentials.source=USER_INFO \
-  --property schema.registry.url=${SCHEMA_REGISTRY_ENDPOINT} \
-  --property schema.registry.basic.auth.user.info=${SCHEMA_REGISTRY_API_KEY}:${SCHEMA_REGISTRY_API_SECRET} \
+  --property schema.registry.url=$SCHEMA_REGISTRY_ENDPOINT \
+  --property schema.registry.basic.auth.user.info=$SCHEMA_REGISTRY_API_KEY:$SCHEMA_REGISTRY_API_SECRET \
   --topic ${TOPICNAME}
 EOF
 
@@ -27,12 +29,14 @@ function create_kafka_avro_console_consumer_frombeginning {
   FILENAME=$2
 
   cat <<EOF > ${FILENAME}
+source ../env.sh
+
 kafka-avro-console-consumer \
-  --bootstrap-server ${BOOTSTRAP_SERVERS} \
+  --bootstrap-server $BOOTSTRAP_SERVERS \
   --consumer.config $CLIENT_CONFIG \
   --property basic.auth.credentials.source=USER_INFO \
-  --property schema.registry.url=${SCHEMA_REGISTRY_ENDPOINT} \
-  --property schema.registry.basic.auth.user.info=${SCHEMA_REGISTRY_API_KEY}:${SCHEMA_REGISTRY_API_SECRET} \
+  --property schema.registry.url=$SCHEMA_REGISTRY_ENDPOINT \
+  --property schema.registry.basic.auth.user.info=$SCHEMA_REGISTRY_API_KEY:$SCHEMA_REGISTRY_API_SECRET \
   --from-beginning \
   --topic ${TOPICNAME}
 EOF
@@ -40,32 +44,25 @@ EOF
   chmod +x ${FILENAME}
 }  
 
-# Function to create a kafka avro console producer
-function create_kafka_avro_console_producer {
-  TOPICNAME=$1
-  FILENAME=$2
-  SCHEMA=$3
+# # Function to create a kafka avro console producer
+# function create_kafka_avro_console_producer 
+#   TOPICNAME=$1
+#   FILENAME=$2
+#   SCHEMA=$3
 
-echo "2"
-echo $3
-echo "3"
-echo $SCHEMA
-echo "4"
-echo ${SCHEMA[@]}
+#   cat <<EOF > ${FILENAME}
+# kafka-avro-console-producer \
+#   --bootstrap-server $BOOTSTRAP_SERVERS \
+#   --producer.config $CLIENT_CONFIG \
+#   --property basic.auth.credentials.source=USER_INFO \
+#   --property schema.registry.url=$SCHEMA_REGISTRY_ENDPOINT \
+#   --property schema.registry.basic.auth.user.info=$SCHEMA_REGISTRY_API_KEY:$SCHEMA_REGISTRY_API_SECRET \
+#   --property value.schema='$SCHEMA[@]' \
+#   --topic ${TOPICNAME}
+# EOF
 
-  cat <<EOF > ${FILENAME}
-kafka-avro-console-producer \
-  --bootstrap-server ${BOOTSTRAP_SERVERS} \
-  --producer.config $CLIENT_CONFIG \
-  --property basic.auth.credentials.source=USER_INFO \
-  --property schema.registry.url=${SCHEMA_REGISTRY_ENDPOINT} \
-  --property schema.registry.basic.auth.user.info=${SCHEMA_REGISTRY_API_KEY}:${SCHEMA_REGISTRY_API_SECRET} \
-  --property value.schema='${SCHEMA[@]}' \
-  --topic ${TOPICNAME}
-EOF
-
-  chmod +x ${FILENAME}
-}  
+#   chmod +x ${FILENAME}
+# }  
 
 # Create topics for the datagen sink connector
 ccloud kafka topic create customers --partitions 1 --if-not-exists
@@ -92,21 +89,9 @@ create_kafka_avro_console_consumer_frombeginning customers $EXAMPLE_FOLDER/1_kaf
 create_kafka_avro_console_consumer_frombeginning products $EXAMPLE_FOLDER/2_kafka-avro-console-consumer-products.sh
 create_kafka_avro_console_consumer supplies $EXAMPLE_FOLDER/3_kafka-avro-console-consumer-supplies.sh
 create_kafka_avro_console_consumer orders $EXAMPLE_FOLDER/4_kafka-avro-console-consumer-orders.sh
-create_kafka_avro_console_consumer product_supply_and_demand $EXAMPLE_FOLDER/5_kafka-avro-console-consumer-product_supply_and_demand.sh
-create_kafka_avro_console_consumer current_stock $EXAMPLE_FOLDER/6_kafka-avro-console-consumer-current_stock.sh
+create_kafka_avro_console_consumer shoppingbasket $EXAMPLE_FOLDER/5_kafka-avro-console-consumer-shoppingbasket.sh
 
-# Create an avro producer to simulate items being placed in a shopping basket
-SHOPPINGBASKET_SCHEMA='{"type":"record","name":"shoppingbasket","fields":[{"name": "id","type": "int"},{"name": "customerid","type": "int"},{"name": "productid","type": "int"},{"name": "quantity","type": "int"}]}'
-echo "1"
-echo $SHOPPINGBASKET_SCHEMA
-create_kafka_avro_console_producer shoppingbasket $EXAMPLE_FOLDER/7_kafka-avro-console-producer-shoppingbasket.sh $SHOPPINGBASKET_SCHEMA
-
-
-
-
-# {"name": "id","type": "int"},{"name": "customerid","type": "int"},{"name": "productid","type": "int"},{"name": "quantity","type": "int"}]}
-# {"id": 1, "customerid": 8, "productid": 4, "quantity": 6}
-
-# {"customerid": 8, "productid": 4, "quantity": 6}
+create_kafka_avro_console_consumer product_supply_and_demand $EXAMPLE_FOLDER/6_kafka-avro-console-consumer-product_supply_and_demand.sh
+create_kafka_avro_console_consumer current_stock $EXAMPLE_FOLDER/7_kafka-avro-console-consumer-current_stock.sh
 
 

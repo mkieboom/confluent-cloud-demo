@@ -15,7 +15,7 @@ chmod +x ccloud_kafka_examples/curl-ksqldb-example.sh
 docker run -d --name ksqldb-cli confluentinc/ksqldb-cli tail -f /dev/null
 
 # Copy the queries sql file into the container
-docker cp ksqlqueries.sql ksqldb-cli:/ksqlqueries.sql
+docker cp scripts/ksqlqueries.sql ksqldb-cli:/ksqlqueries.sql
 
 
 # Create a script to launch ksqlDB cli
