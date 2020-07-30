@@ -110,7 +110,7 @@ EOFSH
 }  
 
 
-Create topics for the datagen sink connector
+# Create topics for the datagen sink connector
 ccloud kafka topic create customers --partitions 1 --if-not-exists
 ccloud kafka topic create products --partitions 1 --if-not-exists
 ccloud kafka topic create orders --partitions 1 --if-not-exists
