@@ -1,8 +1,8 @@
 # Provide the following Confluent Cloud details
 
 # Confluent CLoud Environment
-export ENVIRONMENT_NAME=mkieboom-cicd-env2
-export CLUSTER_NAME=mkieboom-cicd-gcp2
+export ENVIRONMENT_NAME=mkieboom-cicd-env
+export CLUSTER_NAME=mkieboom-cicd-gcp
 export CLUSTER_CLOUD=gcp
 export CLUSTER_REGION=europe-west4
 
