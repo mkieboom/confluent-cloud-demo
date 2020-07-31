@@ -19,6 +19,7 @@ while [ $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors)
   echo -n "."
   sleep 5 
 done
+sleep 5
 
 # Wait for Schema Registry to be ready
 echo -e "\n\nWaiting for Schema Registry to be available before launching the datagen connectors\n"
@@ -27,6 +28,7 @@ do
   echo -n "."
   sleep 5
 done
+sleep 5
 
 # Copy the datagen files into the connect container
 docker cp connect_datagen_avro/datagen_customers.avro connect:/datagen_customers.avro
