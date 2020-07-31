@@ -2,6 +2,7 @@
 
 # Source the Confluent Cloud environmental details
 source env.sh
+source ./scripts/functions.sh
 
 # Create a env file for cp-all-in-one-cloud
 curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/ccloud/ccloud-generate-cp-configs.sh > ccloud-generate-cp-configs.sh
@@ -12,14 +13,11 @@ source ./delta_configs/env.delta
 git clone https://github.com/confluentinc/cp-all-in-one
 docker-compose -f cp-all-in-one/cp-all-in-one-cloud/docker-compose.yml up -d connect
 
-# Wait for Kafka connect to be ready
-echo "Waiting for Kafka Connect to start listening on localhost"
-while [ $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors) -eq 000 ] ; do 
-  #echo -e $(date) " Kafka Connect listener HTTP state: " $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors) " (waiting for 200)"
-  echo -n "."
-  sleep 5 
-done
-sleep 5
+# Verify Kafka Connect Worker has started
+MAX_WAIT=240
+echo "Waiting up to $MAX_WAIT seconds for Connect to start"
+retry $MAX_WAIT host_check_connect_up || exit 1
+sleep 5 # give connect an exta moment to fully mature
 
 # Wait for Schema Registry to be ready
 echo -e "\n\nWaiting for Schema Registry to be available before launching the datagen connectors\n"
