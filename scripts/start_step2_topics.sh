@@ -73,8 +73,8 @@ function create_ksql_select_query {
 cat <<EOFSH > ${FILENAME}
 source ../env.sh
 
-docker exec -i ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
-#ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
+#docker exec -i ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
+ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
 SET 'auto.offset.reset' = 'latest';
 SET 'commit.interval.ms'='1000';
 SELECT * FROM $KSQL_OBJECT_NAME EMIT CHANGES;
@@ -92,8 +92,8 @@ function create_ksql_select_query_frombeginning {
 cat <<EOFSH > ${FILENAME}
 source ../env.sh
 
-docker exec -i ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
-#ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
+#docker exec -i ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
+ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} <<EOF
 SET 'auto.offset.reset' = 'earliest';
 SET 'commit.interval.ms'='1000';
 SELECT * FROM $KSQL_OBJECT_NAME EMIT CHANGES;
