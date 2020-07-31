@@ -8,58 +8,18 @@ curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/utils/co
 # Load the Confluent Cloud library
 source ./scripts/ccloud_library.sh
 source ./scripts/helper.sh
-
-function check_ksql() {
-  if [[ $(type ksql 2>&1) =~ "not found" ]]; then
-    echo "'ksql' cli is not found. Install Confluent Platform, add it to PATH and run again. https://docs.confluent.io/current/installation/installing_cp/index.html"
-    exit 1
-  fi
-
-  return 0
-}
-
-function check_kafka-avro-console-consumer() {
-  if [[ $(type kafka-avro-console-consumer 2>&1) =~ "not found" ]]; then
-    echo "'kafka-avro-console-consumer' cli is not found. Install Confluent Platform, add it to PATH and run again. https://docs.confluent.io/current/installation/installing_cp/index.html"
-    exit 1
-  fi
-
-  return 0
-}
+source ./scripts/functions.sh
 
 # Clean previous variables
-unset ENVIRONMENT_ID
-unset SERVICE_ACCOUNT_ID
-unset KAFKA_CLUSTER_ID
-unset SCHEMA_REGISTRY_CLUSTER_ID
-unset KSQLDB_APP_ID
-
-unset QUIET
-unset ENVIRONMENT_NAME
-unset CLUSTER_NAME
-unset CLUSTER_CLOUD
-unset CLUSTER_REGION
-unset SCHEMA_REGISTRY_CLOUD
-unset SCHEMA_REGISTRY_GEO
-unset CLIENT_CONFIG
-
-unset BOOTSTRAP_SERVERS
-
-unset SCHEMA_REGISTRY_ENDPOINT
-unset SCHEMA_REGISTRY_API_KEY
-unset SCHEMA_REGISTRY_API_SECRET
-
-unset KSQLDB_ENDPOINT
-unset KSQLDB_API_KEY
-unset KSQLDB_API_SECRET
-
+source ./ccloud_env_unset.sh
 
 # Check if we have the prerequisites installed
-check_jq
-check_curl
-check_docker
-check_ksql
-check_kafka-avro-console-consumer
+verify_installed jq && print_pass "jq installed"
+verify_installed curl  && print_pass "curl installed"
+verify_installed docker && print_pass "docker installed"
+verify_installed docker-compose && print_pass "docker-compose installed"
+verify_installed ksql && print_pass "ksql installed"
+verify_installed kafka-avro-console-consumer  && print_pass "kafka-avro-console-consumer installed"
 
 # Check if we have ccloud installed and logged in
 ccloud::validate_version_ccloud_cli 1.10.0 \
