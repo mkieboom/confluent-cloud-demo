@@ -9,6 +9,24 @@ curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/utils/co
 source ./scripts/ccloud_library.sh
 source ./scripts/helper.sh
 
+function check_ksql() {
+  if [[ $(type ksql 2>&1) =~ "not found" ]]; then
+    echo "'ksql' cli is not found. Install Confluent Platform, add it to PATH and run again. https://docs.confluent.io/current/installation/installing_cp/index.html"
+    exit 1
+  fi
+
+  return 0
+}
+
+function check_kafka-avro-console-consumer() {
+  if [[ $(type kafka-avro-console-consumer 2>&1) =~ "not found" ]]; then
+    echo "'kafka-avro-console-consumer' cli is not found. Install Confluent Platform, add it to PATH and run again. https://docs.confluent.io/current/installation/installing_cp/index.html"
+    exit 1
+  fi
+
+  return 0
+}
+
 # Clean previous variables
 unset ENVIRONMENT_ID
 unset SERVICE_ACCOUNT_ID
@@ -40,6 +58,8 @@ unset KSQLDB_API_SECRET
 check_jq
 check_curl
 check_docker
+check_ksql
+check_kafka-avro-console-consumer
 
 # Check if we have ccloud installed and logged in
 ccloud::validate_version_ccloud_cli 1.10.0 \

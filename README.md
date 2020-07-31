@@ -6,6 +6,7 @@ docker
 docker-compose
 jq
 ccloud cli (download from: https://docs.confluent.io/current/cloud/cli/install.html)
+Confluent Platform installed locally and added to $PATH (download from: https://docs.confluent.io/current/installation/installing_cp/index.html)
 ```
 
 
