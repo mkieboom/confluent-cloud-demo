@@ -20,8 +20,8 @@ docker cp scripts/ksqlqueries.sql ksqldb-cli:/ksqlqueries.sql
 
 # Create a script to launch ksqlDB cli
 cat <<EOF > ccloud_kafka_examples/ksqldb-launch.sh
-#docker exec -it ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
-ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
+docker exec -it ksqldb-cli ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
+#ksql -u ${KSQLDB_API_KEY} -p ${KSQLDB_API_SECRET} ${KSQLDB_ENDPOINT} 
 EOF
 chmod +x ccloud_kafka_examples/ksqldb-launch.sh
 
