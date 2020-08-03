@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Download the latest ccloud_library shell script
-#curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/utils/ccloud_library.sh > ./scripts/ccloud_library.sh
+curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/utils/ccloud_library.sh > ./scripts/ccloud_library.sh
 curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/utils/helper.sh > ./scripts/helper.sh
 curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/utils/config.env > ./scripts/config.env
 

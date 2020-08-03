@@ -15,6 +15,9 @@ rm -rf cp-all-in-one/
 rm -rf ccloud_kafka_examples/
 rm -rf env.sh
 rm -rf kafka.config
+rm -rf ./scripts/helper.sh
+rm -rf ./scripts/config.env
+rm -rf ./scripts/ccloud_library.sh
 
 # Clean all previously used environment variables
 source ./ccloud_env_unset.sh
