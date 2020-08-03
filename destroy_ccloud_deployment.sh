@@ -17,7 +17,7 @@ rm -rf env.sh
 rm -rf kafka.config
 rm -rf ./scripts/helper.sh
 rm -rf ./scripts/config.env
-rm -rf ./scripts/ccloud_library.sh
+#rm -rf ./scripts/ccloud_library.sh
 
 # Clean all previously used environment variables
 source ./ccloud_env_unset.sh
