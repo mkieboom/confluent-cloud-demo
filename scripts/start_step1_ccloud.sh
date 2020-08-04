@@ -11,7 +11,7 @@ source ./scripts/helper.sh
 source ./scripts/functions.sh
 
 # Clean previous variables
-source ./ccloud_env_unset.sh
+source ./scripts/ccloud_env_unset.sh
 
 # Check if we have the prerequisites installed
 verify_installed jq && print_pass "jq installed"
