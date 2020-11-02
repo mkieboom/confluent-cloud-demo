@@ -12,3 +12,4 @@ scripts/config.env
 ~$ksqlDB-design.pptx
 ksqlDB-design.pptx
 scripts/helper.sh
+scripts/ccloud_library.sh
