@@ -14,9 +14,18 @@ if [ ! -f env.sh ]; then
     echo "To avoid cloud billing, please login into confluent.cloud and delete the Confluent Cloud deployment manually."
     exit;
 fi
+
 # Source the ccloud environment file as created when launching the Confluent Cloud cluster
 source ./env.sh
 
+# Check if we have ccloud installed and logged in
+ccloud::validate_version_ccloud_cli 1.10.0 \
+  && print_pass "ccloud version ok"
+
+ccloud::validate_logged_in_ccloud_cli \
+  && print_pass "logged into ccloud CLI"
+
+# Run the various destroy scripts
 source ./scripts/destroy_step1_ksqldb.sh
 source ./scripts/destroy_step2_connect.sh
 source ./scripts/destroy_step3_topics.sh
