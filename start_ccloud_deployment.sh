@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Login into ccloud
+ccloud login --save
+
 # Step 1 - Create the Confluent Cloud environment
 echo "Started - Step 1 - Create the Confluent Cloud environment"
 source ./scripts/start_step1_ccloud.sh

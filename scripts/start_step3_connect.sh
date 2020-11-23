@@ -3,6 +3,7 @@
 # Source the Confluent Cloud environmental details
 source env.sh
 source ./scripts/functions.sh
+source ./scripts/ccloud_library.sh
 
 # Create a env file for cp-all-in-one-cloud
 curl -sS https://raw.githubusercontent.com/confluentinc/examples/latest/ccloud/ccloud-generate-cp-configs.sh > ccloud-generate-cp-configs.sh
